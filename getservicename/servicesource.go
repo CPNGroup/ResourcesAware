@@ -20,31 +20,33 @@ func ListServices() map[string]string {
 	ServiceMetricMap := make(map[string]string)
 	namespaces := listallnamespace.ListAllNamespce()
 	for _, ns := range namespaces {
-		if ns == "kube-system" || ns == "kube-public" || ns == "kube-node-lease" || ns == "istio-system" || ns == "kube-flannel" {
+		/* if ns == "kube-system" || ns == "kube-public" || ns == "kube-node-lease" || ns == "istio-system" || ns == "kube-flannel" {
 			continue
-		}
-		var services []string
-		retries := 5
-		for retries > 0 {
-			svcList, err := clientset.CoreV1().Services(ns).List(context.TODO(), metav1.ListOptions{})
+		} */
+		if ns == "li" {
+			var services []string
+			retries := 5
+			for retries > 0 {
+				svcList, err := clientset.CoreV1().Services(ns).List(context.TODO(), metav1.ListOptions{})
+				if err != nil {
+					klog.Errorf("Failed to list services: %v", err)
+					retries--
+					time.Sleep(5 * time.Second) // 等待一段时间后重试
+					continue
+				}
+
+				for _, svc := range svcList.Items {
+					services = append(services, svc.Name)
+				}
+				break
+			}
+			jsonServices, err := json.Marshal(services)
 			if err != nil {
-				klog.Errorf("Failed to list services: %v", err)
-				retries--
-				time.Sleep(5 * time.Second) // 等待一段时间后重试
-				continue
+				log.Fatal(err)
 			}
 
-			for _, svc := range svcList.Items {
-				services = append(services, svc.Name)
-			}
-			break
+			ServiceMetricMap["/servicesname"+"/"+ns] = string(jsonServices)
 		}
-		jsonServices, err := json.Marshal(services)
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		ServiceMetricMap["/servicesname"+"/"+ns] = string(jsonServices)
 	}
 	return ServiceMetricMap
 

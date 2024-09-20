@@ -16,7 +16,7 @@ import (
 )
 
 var (
-	address = "10.129.173.253:30030" // zookeeper地址
+	address = "10.129.82.112:30030" // zookeeper地址
 )
 
 func WriteIn() {
@@ -29,7 +29,7 @@ func WriteIn() {
 	c := pb.NewZkServiceClient(conn)
 
 	nodeNum := getnodemetric.GetNodeResource()
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	_, err = c.Set(ctx, &pb.PathAndData{Path: "/nodenum", Data: strconv.Itoa(nodeNum)})
 	if err != nil {
@@ -41,7 +41,7 @@ func WriteIn() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	ctx, cancel = context.WithTimeout(context.Background(), time.Second)
+	ctx, cancel = context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	_, err = c.Set(ctx, &pb.PathAndData{Path: "/namespaces", Data: string(jsonNamespaceList)})
 	if err != nil {
@@ -50,7 +50,7 @@ func WriteIn() {
 
 	PodMetricMap := getpodmetric.GetPodMetric()
 	for key, value := range PodMetricMap {
-		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 		_, err = c.Set(ctx, &pb.PathAndData{Path: key, Data: value})
 		if err != nil {
@@ -61,7 +61,7 @@ func WriteIn() {
 
 	PodResourceMap := getpodmetric.GetPodResources()
 	for key, value := range PodResourceMap {
-		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 		_, err = c.Set(ctx, &pb.PathAndData{Path: key, Data: value})
 		if err != nil {
@@ -82,12 +82,12 @@ func WriteIn() {
 }
 
 func main() {
-	// 每隔 20 秒执行一次
+	// 每隔30秒执行一次
 	for {
 		WriteIn()
 
-		// 等待 20 秒
-		time.Sleep(20 * time.Second)
+		// 等待30秒
+		time.Sleep(30 * time.Second)
 	}
 
 }

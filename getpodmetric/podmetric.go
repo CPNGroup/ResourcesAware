@@ -26,38 +26,41 @@ func GetPodMetric() map[string]string {
 
 	namespaces := listallnamespace.ListAllNamespce()
 	for _, ns := range namespaces {
-		if ns == "kube-system" || ns == "kube-public" || ns == "kube-node-lease" || ns == "istio-system" || ns == "kube-flannel" {
-			continue
-		}
-		podMetrics, err := mc.MetricsV1beta1().PodMetricses(ns).List(context.Background(), metav1.ListOptions{})
-		if err != nil {
-			fmt.Println("Error:", err)
-		}
-		for _, podMetric := range podMetrics.Items {
-			podName := podMetric.Name
-			podName_ := podName
-			// 使用 '-' 作为分隔符拆分字符串
-			parts := strings.Split(podName, "-")
-			// 获取前两个子字符串
-			if len(parts) > 2 {
-				podName_ = strings.Join(parts[:2], "-")
-			} else {
-				fmt.Println("字符串格式不正确")
+		// if ns == "kube-system" || ns == "kube-public" || ns == "kube-node-lease" || ns == "istio-system" || ns == "kube-flannel" {
+		// 	continue
+		// }
+		if ns == "li" {
+			podMetrics, err := mc.MetricsV1beta1().PodMetricses(ns).List(context.Background(), metav1.ListOptions{})
+			if err != nil {
+				fmt.Println("Error:", err)
 			}
-			podContainers := podMetric.Containers
-			cpuQuantity := ""
-			memQuantity := ""
-			for _, container := range podContainers {
-				if container.Name == "istio-proxy" {
-					continue
+			for _, podMetric := range podMetrics.Items {
+				podName := podMetric.Name
+				podName_ := podName
+				// 使用 '-' 作为分隔符拆分字符串
+				parts := strings.Split(podName, "-")
+				// 获取前两个子字符串
+				if len(parts) > 2 {
+					podName_ = strings.Join(parts[:2], "-")
+				} else {
+					fmt.Println("字符串格式不正确")
 				}
-				cpuQuantity = container.Usage.Cpu().String()
-				memQuantity = container.Usage.Memory().String()
-				PodMetricMap["/pod"+"/"+ns+"/"+podName_+"/"+"cpuUsage"] = cpuQuantity
-				PodMetricMap["/pod"+"/"+ns+"/"+podName_+"/"+"memUsage"] = memQuantity
-			}
+				podContainers := podMetric.Containers
+				cpuQuantity := ""
+				memQuantity := ""
+				for _, container := range podContainers {
+					if container.Name == "istio-proxy" {
+						continue
+					}
+					cpuQuantity = container.Usage.Cpu().String()
+					memQuantity = container.Usage.Memory().String()
+					PodMetricMap["/pod"+"/"+ns+"/"+podName_+"/"+"cpuUsage"] = cpuQuantity
+					PodMetricMap["/pod"+"/"+ns+"/"+podName_+"/"+"memUsage"] = memQuantity
+				}
 
+			}
 		}
+
 	}
 	return PodMetricMap
 }
