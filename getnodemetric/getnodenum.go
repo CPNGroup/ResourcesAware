@@ -8,6 +8,7 @@ import (
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 )
 
+// 获取每个node的资源情况，返回集群中的节点数量
 func GetNodeResource() int {
 	// 创建 Kubernetes 客户端
 	clientset, err := common.GetClientSet()
